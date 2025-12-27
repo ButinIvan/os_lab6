@@ -25,69 +25,46 @@ void print_process_info(const char* process_name) {
 }
 
 int main() {
-    printf("=== Program Start ===\n");
-    
-    // Print parent process info FIRST
-    print_process_info("Parent Process");
-    
-    // First fork() call
-    pid_t pid1 = fork();
-    
-    if (pid1 < 0) {
-        // Error creating process
-        perror("Error in first fork() call");
-        exit(1);
-    }
-    
-    if (pid1 == 0) {
-        // First child process
-        print_process_info("Child Process 1");
-        
-        // Exit child process
-        exit(0);
-    }
-    
-    // Parent process continues execution
-    // Second fork() call
-    pid_t pid2 = fork();
-    
-    if (pid2 < 0) {
-        // Error creating process
-        perror("Error in second fork() call");
-        exit(1);
-    }
-    
-    if (pid2 == 0) {
-        // Second child process
-        print_process_info("Child Process 2");
-        
-        // Exit child process
-        exit(0);
-    }
-    
-    // Parent process waits for child processes to complete
-    // Small delay to ensure children have time to execute
-    usleep(100000);  // 100ms delay
-    
-    // Execute ps -x command in parent process
-    printf("\n=== Executing command: ps -x | grep %d ===\n", getpid());
-    
-    char command[100];
-    // Create command to show our processes
-    sprintf(command, "ps -x | grep %d", getpid());
-    
-    // Execute system command
-    int result = system(command);
-    if (result != 0) {
-        printf("Command execution returned non-zero code: %d\n", result);
-    }
-    
-    // Wait for both child processes to finish
-    // This prevents zombie processes
-    waitpid(pid1, NULL, 0);
-    waitpid(pid2, NULL, 0);
-    
-    printf("=== Program End ===\n");
-    
-    return 0;
+	pid_t pid1, pid2;
+
+	printf("Запуск программы\n");
+	
+	pid1 = fork();
+
+	if (pid1 < 0) {
+		perror("Ошибка первого fork");
+		return 1;
+	}
+  
+	if (pid1 == 0) {
+		print_process_info("Дочерний процесс 1");
+		exit(0);
+	} 
+    else {
+		pid2 = fork();
+		
+  	if (pid2 < 0) {
+  	  perror("Ошибка второго fork");
+  		return 1;
+  	}
+  
+  	if (pid2 == 0) {
+  		print_process_info("Дочерний процесс 2");
+  		exit(0);
+  	} 
+    else {
+  		print_process_info("Родительский процесс");
+  		usleep(10000);
+  
+  		printf("\nВыполнение команды ps -x в родительском процессе\n");
+  			
+  		system("ps -x");
+      
+  		wait(NULL);
+  		wait(NULL);
+  	}
+	}
+
+	printf("Родительский процесс завершает работу\n");
+	return 0;
 }
